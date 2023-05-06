@@ -176,7 +176,6 @@ namespace Artalk.Xmpp.Core {
             queryElement.AppendChild(pswEle);
             iqElement.AppendChild(queryElement);
             data[0].AppendChild(iqElement);
-            Console.WriteLine(data[0].OuterXml);
         }
 
         /// <summary>
