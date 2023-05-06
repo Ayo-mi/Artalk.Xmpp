@@ -56,14 +56,21 @@ namespace Artalk.Xmpp.Core {
 				Type = type;
 		}
 
-		/// <summary>
-		/// Initializes a new instance of the Iq class from the specified
-		/// Xml element.
-		/// </summary>
-		/// <param name="element">An Xml element representing an IQ stanza.</param>
-		/// <exception cref="ArgumentNullException">The element parameter is
-		/// null.</exception>
-		public Iq(XmlElement element)
+        //public Iq(IqType type, string username, string password = null,
+        //    XmlDocument data = null)
+        //    : base(null, username, password, data)
+        //{
+        //    Type = type;
+        //}
+
+        /// <summary>
+        /// Initializes a new instance of the Iq class from the specified
+        /// Xml element.
+        /// </summary>
+        /// <param name="element">An Xml element representing an IQ stanza.</param>
+        /// <exception cref="ArgumentNullException">The element parameter is
+        /// null.</exception>
+        public Iq(XmlElement element)
 			: base(element) {
 		}
 

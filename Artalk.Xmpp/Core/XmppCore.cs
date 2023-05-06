@@ -930,14 +930,20 @@ namespace Artalk.Xmpp.Core {
 			Send(element.ToXmlString());
 		}
 
-		/// <summary>
-		/// Sends the specified string to the server.
-		/// </summary>
-		/// <param name="xml">The string to send.</param>
-		/// <exception cref="ArgumentNullException">The xml parameter is null.</exception>
-		/// <exception cref="IOException">There was a failure while writing to
-		/// the network.</exception>
-		void Send(string xml) {
+        void Send(XmlDocument element)
+        {
+            element.ThrowIfNull("element");
+            Send(element.OuterXml);
+        }
+
+        /// <summary>
+        /// Sends the specified string to the server.
+        /// </summary>
+        /// <param name="xml">The string to send.</param>
+        /// <exception cref="ArgumentNullException">The xml parameter is null.</exception>
+        /// <exception cref="IOException">There was a failure while writing to
+        /// the network.</exception>
+        void Send(string xml) {
 			xml.ThrowIfNull("xml");
 			SendXml.Raise(this, new StanzaXmlEventArgs(xml));
 			// XMPP is guaranteed to be UTF-8.
@@ -957,6 +963,20 @@ namespace Artalk.Xmpp.Core {
 		void Send(Stanza stanza) {
 			stanza.ThrowIfNull("stanza");
 			Send(stanza.ToString());
+		}
+
+        public void SendAccount(Account acct)
+        {
+            AssertValid();
+            acct.ThrowIfNull("account");
+            SendAcct(acct);            
+        }
+
+        void SendAcct(Stanza stanza)
+        {
+            stanza.ThrowIfNull("stanza");
+			Send(stanza.XmlDocToString());
+
 		}
 
 		/// <summary>
@@ -979,12 +999,12 @@ namespace Artalk.Xmpp.Core {
 			return Receive(expected);
 		}
 
-		/// <summary>
-		/// Listens for incoming XML stanzas and raises the appropriate events.
-		/// </summary>
-		/// <remarks>This runs in the context of a separate thread. In case of an
-		/// exception, the Error event is raised and the thread is shutdown.</remarks>
-		void ReadXmlStream() {
+        /// <summary>
+        /// Listens for incoming XML stanzas and raises the appropriate events.
+        /// </summary>
+        /// <remarks>This runs in the context of a separate thread. In case of an
+        /// exception, the Error event is raised and the thread is shutdown.</remarks>
+        void ReadXmlStream() {
 			try {
 				while (true) {
 					XmlElement elem = Receive("iq", "message", "presence");
@@ -1023,17 +1043,16 @@ namespace Artalk.Xmpp.Core {
 			if (element != null) {
 				ReceiveXml.Raise(this, new StanzaXmlEventArgs(element.ToXmlString()));
 			}
-
 			return element;
 		}
 
-		/// <summary>
-		/// Continously removes stanzas from the FIFO of incoming stanzas and raises
-		/// the respective events.
-		/// </summary>
-		/// <remarks>This runs in the context of a separate thread. All stanza events
-		/// are streamlined and execute in the context of this thread.</remarks>
-		void DispatchEvents() {
+        /// <summary>
+        /// Continously removes stanzas from the FIFO of incoming stanzas and raises
+        /// the respective events.
+        /// </summary>
+        /// <remarks>This runs in the context of a separate thread. All stanza events
+        /// are streamlined and execute in the context of this thread.</remarks>
+        void DispatchEvents() {
 			while (true) {
 				try {
 					Stanza stanza = stanzaQueue.Take(cancelDispatch.Token);
@@ -1091,5 +1110,6 @@ namespace Artalk.Xmpp.Core {
 			Authenticated = false;
 			Disconnected.Raise(this, new EventArgs());
 		}
-	}
+        
+    }
 }

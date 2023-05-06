@@ -13,22 +13,23 @@ namespace Artalk.Xmpp.Core {
 		/// The XmlElement containing the actual data.
 		/// </summary>
 		protected XmlElement element;
+        protected XmlDocument data;
 
-		/// <summary>
-		/// Specifies the JID of the intended recipient for the stanza.
-		/// </summary>
-		public Jid To {
-			get {
-				string v = element.GetAttribute("to");
-				return String.IsNullOrEmpty(v) ? null : new Jid(v);
-			}
-			set {
-				if (value == null)
-					element.RemoveAttribute("to");
-				else
-					element.SetAttribute("to", value.ToString());
-			}
-		}
+        public Jid To
+        {
+            get
+            {
+                string v = element.GetAttribute("to");
+                return String.IsNullOrEmpty(v) ? null : new Jid(v);
+            }
+            set
+            {
+                if (value == null)
+                    element.RemoveAttribute("to");
+                else
+                    element.SetAttribute("to", value.ToString());
+            }
+        }   
 
 		/// <summary>
 		/// Specifies the JID of the sender. If this is null, the stanza was generated
@@ -47,10 +48,16 @@ namespace Artalk.Xmpp.Core {
 			}
 		}
 
-		/// <summary>
-		/// The ID of the stanza, which may be used for internal tracking of stanzas.
-		/// </summary>
-		public string Id {
+		public string Username { get; protected set; }
+
+        public string Password { get; protected set; }
+
+        public string Host { get; protected set; }
+
+        /// <summary>
+        /// The ID of the stanza, which may be used for internal tracking of stanzas.
+        /// </summary>
+        public string Id {
 			get {
 				var v = element.GetAttribute("id");
 				return String.IsNullOrEmpty(v) ? null : v;
@@ -122,25 +129,85 @@ namespace Artalk.Xmpp.Core {
 						element.Child(e);
 				}
 		}
+       
+        /// <summary>
+        /// Initializes a new instance of the Stanza class.
+        /// </summary>
+        /// <param name="namespace">The xml namespace of the stanza, if any.</param>
+        /// <param name="username">New user unique name</param>
+        /// <param name="password">New user authentication key</param>
+        /// <param name="data">The content of the stanza.</param>
+        public Stanza(string @namespace = null, string username = null,
+			string password = null, string host = null, params XmlDocument[] data)
+        {             
+            Username = username;
+            Password = password;
+			Host = host;
 
-		/// <summary>
-		/// Initializes a new instance of the Stanza class using the specified
-		/// XmlElement.
-		/// </summary>
-		/// <param name="element">The XmlElement to create the stanza from.</param>
-		/// <exception cref="ArgumentNullException">The element parameter is
-		/// null.</exception>
-		protected Stanza(XmlElement element) {
+			this.data = new XmlDocument();
+			
+			data[0] = this.data;
+            var iqElement = data[0].CreateElement("iq");
+            var queryElement = data[0].CreateElement("query");
+					
+
+            XmlAttribute eleAttr = data[0].CreateAttribute("type");
+            eleAttr.Value = "set";
+            iqElement.Attributes.Append(eleAttr);
+
+            XmlAttribute eleAttr2 = data[0].CreateAttribute("id");
+            eleAttr2.Value = "reg2";
+            iqElement.Attributes.Append(eleAttr2);
+
+            XmlAttribute eleAttr3 = data[0].CreateAttribute("to");
+            eleAttr3.Value = Host;
+            iqElement.Attributes.Append(eleAttr3);
+
+            XmlAttribute namespaceAttr = data[0]	.CreateAttribute("xmlns");
+            namespaceAttr.Value = "jabber:iq:register";
+            queryElement.Attributes.Append(namespaceAttr);
+
+            XmlElement usernameEle = data[0].CreateElement("username");
+            usernameEle.InnerText = Username;
+            queryElement.AppendChild(usernameEle);
+
+            XmlElement pswEle = data[0].CreateElement("password");
+            pswEle.InnerText = Password;
+            queryElement.AppendChild(pswEle);
+            iqElement.AppendChild(queryElement);
+            data[0].AppendChild(iqElement);
+            Console.WriteLine(data[0].OuterXml);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the Stanza class using the specified
+        /// XmlElement.
+        /// </summary>
+        /// <param name="element">The XmlElement to create the stanza from.</param>
+        /// <exception cref="ArgumentNullException">The element parameter is
+        /// null.</exception>
+        protected Stanza(XmlElement element) {
 			element.ThrowIfNull("element");
 			this.element = element;
 		}
 
-		/// <summary>
-		/// Returns a textual representation of this instance of the Stanza class.
-		/// </summary>
-		/// <returns>A textual representation of this Stanza instance.</returns>
-		public override string ToString() {
+        protected Stanza(XmlDocument element)
+        {
+            element.ThrowIfNull("element");
+            this.data = element;
+        }
+
+        /// <summary>
+        /// Returns a textual representation of this instance of the Stanza class.
+        /// </summary>
+        /// <returns>A textual representation of this Stanza instance.</returns>
+        public override string ToString() {
 			return element.ToXmlString();
 		}
-	}
+
+        public string XmlDocToString()
+        {
+            return data.OuterXml;
+        }
+    }
 }

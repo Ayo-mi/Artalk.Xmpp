@@ -15,14 +15,18 @@ namespace Artalk.WinClient
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            client = new ArtalkXmppClient(txtServer.Text, txtUsername.Text, txtPassword.Text);
+            try
+            {
+                client = new ArtalkXmppClient(txtServer.Text, txtUsername.Text, txtPassword.Text);
 
-            client.Message += OnNewMessage;
-            client.Connect();
-            btnConnect.Enabled = false;
-            btnDisconnect.Enabled = true;
+                client.Message += OnNewMessage;
+                client.Connect();
+                btnConnect.Enabled = false;
+                btnDisconnect.Enabled = true;
+            }catch(Exception ex) { MessageBox.Show(ex.Message); }
+            
         }
-
+       
         private void btnSendMessage_Click(object sender, EventArgs e)
         {
             client.SendMessage(txtTo.Text, txtMessage.Text, null, null, MessageType.Chat, null);
